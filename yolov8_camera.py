@@ -72,7 +72,7 @@ def object_to_speech(detections):
     
     # Speak out all detected objects
     engine.runAndWait()
-
+    engine.stop()
 # Continuously capture frames from the camera and perform object detection
 while True:
     ret, frame = cap.read()
