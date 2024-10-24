@@ -39,6 +39,7 @@
 import cv2
 import pyttsx3
 from ultralytics import YOLO
+import time
 
 # Initialize text-to-speech engine (you can replace this with LSTM-based TTS if needed)
 engine = pyttsx3.init()
@@ -53,8 +54,18 @@ if not cap.isOpened():
     print("Error: Could not open video stream from camera.")
     exit()
 
+# Set a timer to limit speech frequency
+last_spoken_time = time.time()
+speech_interval = 5  # Speak out detected objects every 5 seconds
+
 # Function to convert object detection results into speech
 def object_to_speech(detections):
+    global last_spoken_time
+    
+    # Only speak if enough time has passed since the last spoken sentence
+    if time.time() - last_spoken_time < speech_interval:
+        return
+
     detected_objects = []
     
     # Loop through the detected objects
@@ -72,7 +83,10 @@ def object_to_speech(detections):
     
     # Speak out all detected objects
     engine.runAndWait()
-    engine.stop()
+
+    # Update the last spoken time to prevent continuous speaking
+    last_spoken_time = time.time()
+
 # Continuously capture frames from the camera and perform object detection
 while True:
     ret, frame = cap.read()
@@ -103,6 +117,7 @@ while True:
 # Release the camera and close all OpenCV windows
 cap.release()
 cv2.destroyAllWindows()
+
 
 
 
