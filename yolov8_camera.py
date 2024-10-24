@@ -35,7 +35,6 @@
 # # Release the camera and close all OpenCV windows
 # cap.release()
 # cv2.destroyAllWindows()
-
 import cv2
 import pyttsx3
 from ultralytics import YOLO
@@ -81,8 +80,11 @@ def object_to_speech(detections):
             print(sentence)  # Print the sentence for debugging
             engine.say(sentence)
     
-    # Speak out all detected objects
-    engine.runAndWait()
+    # Ensure no other loop is running and execute the text-to-speech process
+    try:
+        engine.runAndWait()
+    except RuntimeError:
+        print("Speech engine is already running, skipping.")
 
     # Update the last spoken time to prevent continuous speaking
     last_spoken_time = time.time()
@@ -117,6 +119,7 @@ while True:
 # Release the camera and close all OpenCV windows
 cap.release()
 cv2.destroyAllWindows()
+
 
 
 
