@@ -36,11 +36,10 @@
 # cap.release()
 # cv2.destroyAllWindows()
 import cv2
-import pyttsx3
 from ultralytics import YOLO
-import time
+import pyttsx3
 
-# Initialize text-to-speech engine (you can replace this with LSTM-based TTS if needed)
+# Initialize text-to-speech engine (pyttsx3)
 engine = pyttsx3.init()
 
 # Load the YOLOv8 pre-trained model
@@ -53,41 +52,24 @@ if not cap.isOpened():
     print("Error: Could not open video stream from camera.")
     exit()
 
-# Set a timer to limit speech frequency
-last_spoken_time = time.time()
-speech_interval = 5  # Speak out detected objects every 5 seconds
-
 # Function to convert object detection results into speech
 def object_to_speech(detections):
-    global last_spoken_time
-    
-    # Only speak if enough time has passed since the last spoken sentence
-    if time.time() - last_spoken_time < speech_interval:
-        return
-
     detected_objects = []
     
-    # Loop through the detected objects
     for det in detections:
-        # Get the label of the detected object (e.g., 'person', 'chair')
         object_name = model.names[int(det.cls)]
         
-        # Add the object to the list if not already announced
         if object_name not in detected_objects:
             detected_objects.append(object_name)
-            # Convert the object name to speech
             sentence = f"There is a {object_name}"
             print(sentence)  # Print the sentence for debugging
+            
+            # Say the sentence without reinitializing or overlapping
             engine.say(sentence)
     
-    # Ensure no other loop is running and execute the text-to-speech process
-    try:
-        engine.runAndWait()
-    except RuntimeError:
-        print("Speech engine is already running, skipping.")
-
-    # Update the last spoken time to prevent continuous speaking
-    last_spoken_time = time.time()
+    # Run and wait only once per detection cycle
+    engine.runAndWait()
+    engine.stop()
 
 # Continuously capture frames from the camera and perform object detection
 while True:
@@ -101,7 +83,7 @@ while True:
     results = model(frame)
     
     # Get detected objects
-    detections = results[0].boxes  # This gives us the detected bounding boxes and labels
+    detections = results[0].boxes
     
     # Convert detection results to speech
     object_to_speech(detections)
@@ -119,6 +101,10 @@ while True:
 # Release the camera and close all OpenCV windows
 cap.release()
 cv2.destroyAllWindows()
+
+# Stop the engine after exiting the loop
+engine.stop()
+
 
 
 
